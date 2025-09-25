@@ -1,0 +1,158 @@
+@startuml Deployment_Architecture
+!theme plain
+title Creative Automation Platform - Deployment Architecture
+footer Author: Rohit Gangupantulu | Production Deployment Strategy
+
+' Define styles
+skinparam node {
+    BackgroundColor #E3F2FD
+    BorderColor #1976D2
+}
+
+skinparam component {
+    BackgroundColor #FFF3E0
+    BorderColor #F57C00
+}
+
+skinparam database {
+    BackgroundColor #FFEBEE
+    BorderColor #C62828
+}
+
+skinparam cloud {
+    BackgroundColor #F3E5F5
+    BorderColor #7B1FA2
+}
+
+' Current Local Development Setup
+package "Local Development Environment" as local {
+    node "Developer Machine" as dev {
+        component "Python 3.9+" as python
+        component "Docker\n(Optional)" as docker
+        component "API Server\n(FastAPI)" as localapi
+        component "File System\nStorage" as localfiles
+        note right : Current POC\nImplementation
+    }
+}
+
+' Future Production Deployment
+package "Production Environment (Phase 2)" as prod {
+    
+    cloud "Load Balancer" as lb #E8EAF6 {
+        component "Nginx/HAProxy" as nginx
+    }
+    
+    node "Application Servers" as appservers {
+        component "API Instance 1" as api1
+        component "API Instance 2" as api2
+        component "API Instance N" as apiN
+        note bottom : Horizontal scaling\nwith Kubernetes
+    }
+    
+    node "Worker Nodes" as workers {
+        component "Worker 1" as worker1
+        component "Worker 2" as worker2
+        component "Worker N" as workerN
+        note bottom : Process campaigns\nin parallel
+    }
+    
+    database "Data Layer" as datalayer {
+        component "PostgreSQL\nMetadata" as postgres
+        component "Redis\nCache & Queue" as redis
+        component "S3/Azure\nAsset Storage" as objectstore
+    }
+    
+    cloud "External Services" as external {
+        component "OpenAI API" as openaiapi
+        component "Stability API" as stabilityapi
+        component "CDN\n(CloudFront)" as cdn
+    }
+    
+    cloud "Monitoring" as monitoring {
+        component "Prometheus\nMetrics" as prometheus
+        component "Grafana\nDashboards" as grafana
+        component "Sentry\nError Tracking" as sentry
+    }
+}
+
+' Docker Compose Setup (Intermediate)
+package "Docker Deployment (Phase 1)" as docker_deploy {
+    node "Docker Host" as dockerhost {
+        component "API Container" as apicontainer
+        component "Worker Container" as workercontainer
+        component "Redis Container" as rediscontainer
+        component "Postgres Container" as postgrescontainer
+        note bottom : Single-host\ncontainerized setup
+    }
+}
+
+' Relationships - Local Development
+python --> localapi : Runs
+localapi --> localfiles : Stores assets
+
+' Docker Deployment
+dockerhost --> apicontainer : Orchestrates
+apicontainer <--> rediscontainer : Queue/Cache
+apicontainer <--> postgrescontainer : Metadata
+workercontainer <--> rediscontainer : Job queue
+
+' Production Flow
+lb --> api1 : Route requests
+lb --> api2 : Load balance
+lb --> apiN : Distribute
+
+api1 --> redis : Queue jobs
+api2 --> redis : Cache data
+apiN --> postgres : Store metadata
+
+worker1 <-- redis : Get jobs
+worker2 <-- redis : Process
+workerN <-- redis : Scale
+
+workers --> objectstore : Store assets
+workers --> openaiapi : Generate images
+workers --> stabilityapi : Fallback
+
+cdn <-- objectstore : Serve assets
+
+prometheus <-- appservers : Collect metrics
+prometheus <-- workers : Monitor performance
+grafana <-- prometheus : Visualize
+sentry <-- appservers : Track errors
+sentry <-- workers : Log failures
+
+' Migration Path
+local -[#green,dashed]-> docker_deploy : Phase 1\nContainerization
+docker_deploy -[#blue,dashed]-> prod : Phase 2\nProduction Scale
+
+' Deployment Specifications
+note left of prod
+**Production Specs:**
+- 3+ API instances
+- 5+ Worker nodes
+- PostgreSQL cluster
+- Redis Sentinel
+- Multi-region S3
+- CloudFront CDN
+- 99.9% SLA
+end note
+
+note right of docker_deploy
+**Docker Benefits:**
+- Consistent environment
+- Easy deployment
+- Resource isolation
+- Quick rollback
+- Local testing
+end note
+
+note bottom of local
+**Development Setup:**
+- Simple to run
+- No external dependencies
+- Mock providers available
+- File-based storage
+- Suitable for POC/Demo
+end note
+
+@enduml

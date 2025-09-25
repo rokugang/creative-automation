@@ -1,0 +1,37 @@
+{
+  "campaign_id": "DEMO-001",
+  "products": [
+    {
+      "sku": "PROD-DEMO",
+      "name": "Premium Wireless Headphones",
+      "description": "High-quality wireless headphones with noise cancellation",
+      "features": [
+        "Noise Cancellation",
+        "30-hour battery",
+        "Premium Sound"
+      ],
+      "variants_needed": 2
+    }
+  ],
+  "target_markets": [
+    {
+      "region": "US",
+      "language": "en"
+    }
+  ],
+  "aspect_ratios": [
+    "1:1",
+    "9:16",
+    "16:9"
+  ],
+  "messaging": {
+    "headline": "Experience Pure Sound",
+    "body": "Immerse yourself in crystal-clear audio",
+    "cta": "Shop Now"
+  },
+  "creative_params": {
+    "tone": "modern and premium",
+    "color_palette": "dark and sophisticated",
+    "artistic_style": "photographic"
+  }
+}

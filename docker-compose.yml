@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  # API Server
+  api:
+    build: .
+    container_name: creative-automation-api
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - STABILITY_API_KEY=${STABILITY_API_KEY}
+      - REDIS_URL=redis://redis:6379/0
+      - POSTGRES_URL=postgresql://user:pass@postgres:5432/campaigns
+    volumes:
+      - ./outputs:/app/outputs
+      - ./campaign_briefs:/app/campaign_briefs
+    depends_on:
+      - redis
+      - postgres
+    restart: unless-stopped
+    networks:
+      - creative-network
+    command: python -m src.api.server --host 0.0.0.0 --port 8000
+
+  # Streamlit UI
+  ui:
+    build: .
+    container_name: creative-automation-ui
+    ports:
+      - "8501:8501"
+    environment:
+      - API_URL=http://api:8000
+    volumes:
+      - ./outputs:/app/outputs
+    depends_on:
+      - api
+    restart: unless-stopped
+    networks:
+      - creative-network
+    command: streamlit run demo_ui.py --server.port 8501 --server.address 0.0.0.0
+
+  # Worker for async processing
+  worker:
+    build: .
+    container_name: creative-automation-worker
+    environment:
+      - ENVIRONMENT=production
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - STABILITY_API_KEY=${STABILITY_API_KEY}
+      - REDIS_URL=redis://redis:6379/0
+      - POSTGRES_URL=postgresql://user:pass@postgres:5432/campaigns
+    volumes:
+      - ./outputs:/app/outputs
+    depends_on:
+      - redis
+      - postgres
+    restart: unless-stopped
+    networks:
+      - creative-network
+    command: python -m src.agents.campaign_monitor
+
+  # Redis for caching and queues
+  redis:
+    image: redis:7-alpine
+    container_name: creative-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - creative-network
+    command: redis-server --appendonly yes
+
+  # PostgreSQL for metadata
+  postgres:
+    image: postgres:15-alpine
+    container_name: creative-postgres
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=campaigns
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - creative-network
+
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: creative-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api
+      - ui
+    restart: unless-stopped
+    networks:
+      - creative-network
+
+networks:
+  creative-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+  postgres-data:

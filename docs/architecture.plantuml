@@ -1,0 +1,127 @@
+@startuml Creative_Automation_Platform_Architecture
+!theme plain
+title Creative Automation Platform - System Architecture
+footer Author: Rohit Gangupantulu | FDE Assessment
+
+' Define colors and styles
+skinparam backgroundColor #FEFEFE
+skinparam component {
+    BackgroundColor #E3F2FD
+    BorderColor #1976D2
+    ArrowColor #424242
+    FontColor #212121
+}
+skinparam database {
+    BackgroundColor #FFF3E0
+    BorderColor #F57C00
+}
+skinparam cloud {
+    BackgroundColor #F3E5F5
+    BorderColor #7B1FA2
+}
+skinparam package {
+    BackgroundColor #F5F5F5
+    BorderColor #757575
+}
+
+' Define Actors and External Systems
+actor "Creative Team" as creative #FFE0B2
+actor "Ad Operations" as adops #FFE0B2
+actor "Stakeholders" as stakeholder #FFE0B2
+
+' Define Cloud Services
+cloud "GenAI Providers" as genai {
+    component "OpenAI\nDALL-E 3" as openai #B3E5FC
+    component "Stability AI\nSDXL" as stability #B3E5FC
+    component "Fallback\nMock Provider" as mock #B3E5FC
+}
+
+' Main System Package
+package "Creative Automation Platform" as system {
+    
+    ' API Layer
+    package "API Gateway Layer" as api_layer #E8F5E9 {
+        component "FastAPI Server" as api
+        component "Authentication" as auth
+        component "Rate Limiter" as ratelimit
+        note right of api : RESTful endpoints\nWebSocket support\nOpenAPI docs
+    }
+    
+    ' Processing Core
+    package "Processing Layer" as proc_layer #E3F2FD {
+        component "Campaign Processor" as processor
+        component "Queue Manager" as queue
+        component "Monitoring Agent" as monitor
+        note left of processor : Orchestrates workflow\nHandles retries\nManages state
+    }
+    
+    ' Service Layer
+    package "Service Layer" as service_layer #FFF3E0 {
+        component "GenAI Orchestrator" as orchestrator
+        component "Image Processor" as imgproc
+        component "Compliance Checker" as compliance
+        note right of compliance : Brand validation\nLegal checks\nAuto-correction
+    }
+    
+    ' Data Layer
+    package "Storage Layer" as storage_layer #FFEBEE {
+        database "File Storage" as files
+        database "Metadata Store" as metadata
+        database "Cache" as cache
+    }
+}
+
+' External Storage Options (for future)
+cloud "Cloud Storage\n(Future)" as cloudstorage {
+    component "AWS S3" as s3 #E0E0E0
+    component "Azure Blob" as azure #E0E0E0
+}
+
+' Define Relationships - User Interactions
+creative --> api : Submit campaign\nbriefs
+adops --> api : Monitor\nprogress
+stakeholder --> api : View reports
+
+' API Layer Internal
+api --> auth : Validate
+api --> ratelimit : Check limits
+api --> queue : Enqueue campaigns
+
+' Processing Flow
+queue --> processor : Process campaigns
+processor --> orchestrator : Request generation
+processor --> imgproc : Process images
+processor --> compliance : Validate assets
+monitor --> queue : Monitor queue
+monitor --> processor : Track progress
+
+' Service Interactions
+orchestrator --> openai : Primary provider
+orchestrator --> stability : Fallback provider
+orchestrator --> mock : Development/testing
+orchestrator --> cache : Check cache
+
+imgproc --> files : Save processed
+compliance --> metadata : Log results
+
+' Data Flow
+processor --> files : Store assets
+processor --> metadata : Save campaign data
+orchestrator --> cache : Cache results
+
+' Future Integration (dotted lines)
+files ..> s3 : Future migration
+files ..> azure : Alternative storage
+
+' Add Legend
+legend right
+    |= Color |= Component Type |
+    | <#E3F2FD> | Core Processing |
+    | <#FFF3E0> | Services |
+    | <#FFEBEE> | Storage |
+    | <#E8F5E9> | API Layer |
+    | <#F3E5F5> | External Services |
+    | <#FFE0B2> | Users/Actors |
+endlegend
+
+@enduml

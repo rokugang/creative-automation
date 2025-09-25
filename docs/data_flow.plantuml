@@ -1,0 +1,142 @@
+@startuml Creative_Automation_Data_Flow
+!theme plain
+title Creative Automation Platform - Data Flow Diagram
+footer Author: Rohit Gangupantulu | Campaign Processing Workflow
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam maxMessageSize 200
+
+participant "Client\n(UI/API)" as client #FFE0B2
+participant "API Gateway" as api #E8F5E9
+participant "Queue Manager" as queue #E3F2FD
+participant "Campaign\nProcessor" as processor #E3F2FD
+participant "GenAI\nOrchestrator" as genai #FFF3E0
+participant "Image\nProcessor" as imgproc #FFF3E0
+participant "Compliance\nChecker" as compliance #FFF3E0
+participant "Storage" as storage #FFEBEE
+participant "Monitoring\nAgent" as monitor #E3F2FD
+
+== Campaign Submission ==
+
+client -> api : POST /api/campaigns\n{campaign_brief}
+activate api
+api -> api : Validate request
+api -> queue : Enqueue campaign
+activate queue
+queue -> queue : Priority check
+queue --> api : Campaign ID + Status
+deactivate queue
+api --> client : 202 Accepted\n{campaign_id, status}
+deactivate api
+
+== Asynchronous Processing ==
+
+monitor -> queue : Poll for campaigns
+activate monitor
+queue -> processor : Dequeue campaign
+activate processor
+processor -> processor : Validate brief
+
+== Asset Generation ==
+
+group For each product
+    processor -> genai : Generate assets\n{prompt, style}
+    activate genai
+    
+    alt Primary Provider Available (OpenAI)
+        genai -> genai : Check cache
+        genai -> genai : Optimize prompt
+        genai ->> genai : Call OpenAI API
+        note right : DALL-E 3\n5-10 seconds
+    else Fallback to Secondary (Stability)
+        genai ->> genai : Call Stability API
+        note right : SDXL\n3-7 seconds
+    else Use Mock Provider
+        genai -> genai : Generate mock asset
+        note right : Instant\nfor testing
+    end
+    
+    genai --> processor : Base asset
+    deactivate genai
+end
+
+== Image Processing ==
+
+group For each aspect ratio
+    processor -> imgproc : Process asset\n{asset, ratio}
+    activate imgproc
+    imgproc -> imgproc : Smart crop\n(saliency detection)
+    imgproc -> imgproc : Resize to target
+    imgproc -> imgproc : Apply text overlay
+    imgproc -> imgproc : Optimize quality
+    imgproc --> processor : Processed asset
+    deactivate imgproc
+end
+
+== Compliance Validation ==
+
+processor -> compliance : Validate assets
+activate compliance
+
+group Brand Compliance
+    compliance -> compliance : Check colors
+    compliance -> compliance : Detect logo
+    compliance -> compliance : Verify contrast
+    compliance -> compliance : Check composition
+end
+
+group Legal Compliance
+    compliance -> compliance : Check prohibited words
+    compliance -> compliance : Verify disclaimers
+    compliance -> compliance : Validate claims
+end
+
+compliance --> processor : Compliance report
+deactivate compliance
+
+alt Compliance Failed
+    processor -> processor : Apply auto-correction
+    processor -> compliance : Re-validate
+end
+
+== Storage & Output ==
+
+processor -> storage : Save assets
+activate storage
+storage -> storage : Create folder structure\n/{campaign}/{product}/{ratio}/
+storage -> storage : Save images
+storage -> storage : Save metadata
+storage --> processor : Output paths
+deactivate storage
+
+processor -> monitor : Update status
+monitor -> monitor : Log metrics
+monitor --> queue : Mark complete
+deactivate processor
+
+== Client Notification ==
+
+monitor -> api : Update campaign status
+api ->> client : WebSocket notification\n{status: completed}
+monitor -> monitor : Generate report
+deactivate monitor
+
+== Error Handling ==
+
+group Error Scenario
+    processor ->x genai : Generation failed
+    genai --> processor : Error
+    processor -> processor : Retry with backoff
+    processor -> genai : Retry request
+    genai --> processor : Success/Failure
+    
+    alt Max retries exceeded
+        processor -> monitor : Alert failure
+        monitor -> monitor : Log error
+        monitor -> api : Send alert
+        api ->> client : Error notification
+    end
+end
+
+@enduml

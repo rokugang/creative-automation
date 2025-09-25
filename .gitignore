@@ -1,0 +1,56 @@
+# Environment variables
+.env
+*.env
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv
+*.egg-info/
+dist/
+build/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Project specific
+outputs/
+campaign_briefs/*.json
+temp/
+*.log
+test_outputs/
+
+# Internal docs
+*EVALUATION*.md
+*CHECKLIST*.md
+*ACTION*.md
+*SUBMISSION*.md
+*CRITICAL*.md
+*INTERNAL*.md
+*VOICEOVER*.md
+*RECORDING*.md
+*RECORD*.md
+*voiceover*.md
+*script*.md
+*steps*.md
+*checklist*.md
+*test*.md
+PRESENTATION*.md

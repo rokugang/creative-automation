@@ -1,0 +1,85 @@
+{
+  "campaign_id": "CAMP-2024-001",
+  "products": [
+    {
+      "sku": "HEADPHONE-PRO",
+      "name": "Premium Wireless Headphones",
+      "description": "High-quality wireless headphones with active noise cancellation",
+      "features": [
+        "Active Noise Cancellation",
+        "30-hour battery life",
+        "Premium drivers for crystal-clear sound",
+        "Comfortable over-ear design"
+      ],
+      "variants_needed": 3
+    },
+    {
+      "sku": "EARBUDS-SPORT",
+      "name": "Sport Wireless Earbuds",
+      "description": "Water-resistant earbuds perfect for workouts",
+      "features": [
+        "IPX7 water resistance",
+        "Secure fit for sports",
+        "8-hour battery + charging case",
+        "Touch controls"
+      ],
+      "variants_needed": 2
+    }
+  ],
+  "target_markets": [
+    {
+      "region": "US",
+      "language": "en",
+      "cultural_preferences": {
+        "color_scheme": "bold",
+        "messaging_style": "direct"
+      }
+    },
+    {
+      "region": "UK",
+      "language": "en",
+      "cultural_preferences": {
+        "color_scheme": "sophisticated",
+        "messaging_style": "subtle"
+      }
+    },
+    {
+      "region": "DE",
+      "language": "de",
+      "cultural_preferences": {
+        "color_scheme": "minimal",
+        "messaging_style": "technical"
+      }
+    }
+  ],
+  "aspect_ratios": ["1:1", "9:16", "16:9"],
+  "messaging": {
+    "headline": "Experience Pure Sound",
+    "body": "Immerse yourself in exceptional audio quality with our latest collection of premium audio devices.",
+    "cta": "Shop Now - Limited Time Offer",
+    "hashtags": ["#PureSound", "#WirelessFreedom", "#AudioPerfection"]
+  },
+  "creative_params": {
+    "tone": "modern and premium",
+    "color_palette": "dark with accent colors",
+    "artistic_style": "photographic",
+    "lighting": "dramatic",
+    "mood": "sophisticated"
+  },
+  "audience": {
+    "age_range": [25, 45],
+    "interests": ["music", "technology", "fitness", "travel"],
+    "personas": ["audiophiles", "tech enthusiasts", "active professionals"],
+    "income_bracket": "middle-to-high"
+  },
+  "performance_targets": {
+    "ctr": 0.05,
+    "conversion_rate": 0.02,
+    "engagement_rate": 0.08
+  },
+  "budget_constraints": {
+    "max_generation_cost": 10.0,
+    "max_processing_time": 120
+  },
+  "brand_guidelines_version": "2024-Q1"
+}
